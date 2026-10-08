@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>The Decimal Shrink & Stretch Machine</title>
+  <title>The Decimal-Fraction Transformer</title>
   <style>
     * {
       box-sizing: border-box;
@@ -11,8 +11,8 @@
     }
 
     body {
-      background: #f1f5f9;
-      color: #0f172a;
+      background: #f0f4f8;
+      color: #1e293b;
       margin: 0;
       padding: 20px;
       display: flex;
@@ -21,296 +21,390 @@
     }
 
     .container {
-      max-width: 800px;
+      max-width: 850px;
       width: 100%;
       background: white;
       padding: 30px;
       border-radius: 20px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
       text-align: center;
     }
 
     h1 {
       margin-top: 0;
-      color: #1e293b;
+      color: #0f172a;
     }
 
     .subtitle {
       color: #64748b;
       margin-bottom: 25px;
+      font-size: 1.1rem;
     }
 
-    /* Target Display Box */
-    .challenge-box {
+    /* Challenge Display Box */
+    .challenge-card {
       background: #eff6ff;
       border: 2px dashed #2563eb;
-      border-radius: 12px;
-      padding: 15px;
-      font-size: 1.8rem;
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 25px;
+    }
+
+    .problem-title {
+      font-size: 1.2rem;
+      color: #475569;
+      margin-bottom: 10px;
+    }
+
+    .problem-expr {
+      font-size: 2.5rem;
       font-weight: bold;
       color: #1d4ed8;
-      margin-bottom: 25px;
     }
 
-    /* Place Value Table */
-    .pv-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 25px;
-    }
-
-    .pv-table th {
-      background: #3b82f6;
-      color: white;
-      padding: 12px;
-      font-size: 1.1rem;
-      border: 1px solid #2563eb;
-    }
-
-    .pv-table td {
-      border: 2px solid #cbd5e1;
-      height: 90px;
-      width: 16.66%;
-      position: relative;
-      background: #f8fafc;
-    }
-
-    .decimal-dot {
-      font-size: 3rem;
-      font-weight: bold;
-      color: #dc2626;
-      line-height: 90px;
-    }
-
-    .digit-slot {
+    /* Transformation Pipeline Visual */
+    .pipeline {
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100%;
-    }
-
-    .digit-card {
-      width: 50px;
-      height: 60px;
-      background: #facc15;
-      color: #854d0e;
-      font-size: 2rem;
-      font-weight: bold;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      transition: transform 0.4s ease, background 0.3s ease;
-    }
-
-    .digit-card.shifted {
-      transform: scale(1.1);
-      background: #4ade80;
-      color: #14532d;
-    }
-
-    /* Action Buttons */
-    .controls {
-      display: flex;
       gap: 15px;
-      justify-content: center;
-      margin-bottom: 20px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
     }
 
-    .btn {
-      padding: 15px 25px;
-      font-size: 1.2rem;
+    .step-box {
+      background: #f8fafc;
+      border: 2px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 15px 20px;
+      min-width: 160px;
+      text-align: center;
+    }
+
+    .step-box.active {
+      border-color: #2563eb;
+      background: #f0f7ff;
+    }
+
+    .step-label {
+      font-size: 0.85rem;
       font-weight: bold;
-      border: none;
-      border-radius: 10px;
+      color: #64748b;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .fraction-display {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #0f172a;
+    }
+
+    .fraction-line {
+      width: 100%;
+      height: 3px;
+      background-color: #0f172a;
+      margin: 2px 0;
+    }
+
+    .arrow {
+      font-size: 1.8rem;
+      color: #2563eb;
+      font-weight: bold;
+    }
+
+    /* Options / Interactive Buttons */
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
+    .btn-option {
+      background: #ffffff;
+      border: 2px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 18px;
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #1e293b;
       cursor: pointer;
       transition: all 0.2s ease;
-      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
     }
 
-    .btn-shrink {
-      background-color: #ef4444;
+    .btn-option:hover {
+      border-color: #2563eb;
+      background: #f1f5f9;
+      transform: translateY(-2px);
     }
-    .btn-shrink:hover { background-color: #dc2626; }
 
-    .btn-stretch {
-      background-color: #16a34a;
+    .btn-option.selected-correct {
+      background: #dcfce7 !important;
+      border-color: #16a34a !important;
+      color: #14532d !important;
     }
-    .btn-stretch:hover { background-color: #15803d; }
+
+    .btn-option.selected-wrong {
+      background: #fee2e2 !important;
+      border-color: #dc2626 !important;
+      color: #7f1d1d !important;
+    }
+
+    /* Rule Explanation Banner */
+    .explanation-banner {
+      min-height: 70px;
+      background: #f8fafc;
+      border-left: 6px solid #cbd5e1;
+      padding: 15px;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      text-align: left;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
 
     .btn-next {
-      background-color: #2563eb;
-      margin-top: 10px;
-    }
-    .btn-next:hover { background-color: #1d4ed8; }
-
-    /* Explanation Feedback Box */
-    .feedback {
-      min-height: 60px;
-      font-size: 1.15rem;
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      font-size: 1.1rem;
       font-weight: bold;
-      padding: 12px;
-      border-radius: 8px;
-      margin-top: 15px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.2s;
     }
 
-    .feedback.correct {
-      background: #dcfce7;
-      color: #15803d;
+    .btn-next:hover {
+      background: #1d4ed8;
     }
 
-    .score-board {
-      font-size: 1.2rem;
+    .score-tracker {
+      margin-top: 20px;
+      font-size: 1.1rem;
       font-weight: bold;
-      color: #475569;
-      margin-top: 15px;
+      color: #64748b;
     }
   </style>
 </head>
 <body>
 
 <div class="container">
-  <h1>The Shrink & Stretch Machine</h1>
-  <p class="subtitle">Can you shift the digits to solve multiplying and dividing by 0.1?</p>
+  <h1>The Fraction Transformer</h1>
+  <p class="subtitle">Convert decimals into fractions to find the equivalent calculation!</p>
 
-  <div class="challenge-box" id="challengeText">Loading...</div>
-
-  <!-- Place Value Chart -->
-  <table class="pv-table">
-    <thead>
-      <tr>
-        <th>Hundreds</th>
-        <th>Tens</th>
-        <th>Ones</th>
-        <th>.</th>
-        <th>Tenths</th>
-        <th>Hundredths</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td><div class="digit-slot" id="col-0"></div></td>
-        <td><div class="digit-slot" id="col-1"></div></td>
-        <td><div class="digit-slot" id="col-2"></div></td>
-        <td><div class="decimal-dot">•</div></td>
-        <td><div class="digit-slot" id="col-3"></div></td>
-        <td><div class="digit-slot" id="col-4"></div></td>
-      </tr>
-    </tbody>
-  </table>
-
-  <!-- Controls -->
-  <div class="controls">
-    <button class="btn btn-shrink" onclick="applyAction('shrink')">
-      SHRINK! (Shift Right ➔)
-    </button>
-    <button class="btn btn-stretch" onclick="applyAction('stretch')">
-      STRETCH! (Shift Left ⬅)
-    </button>
+  <!-- Problem Header -->
+  <div class="challenge-card">
+    <div class="problem-title" id="stepPrompt">Step 1: Convert the Decimal into a Fraction</div>
+    <div class="problem-expr" id="problemExpr">8 × 0.1</div>
   </div>
 
-  <div class="feedback" id="feedbackText">Select SHRINK or STRETCH to shift the digits!</div>
+  <!-- Interactive Conversion Pipeline -->
+  <div class="pipeline">
+    <div class="step-box active">
+      <div class="step-label">Original Problem</div>
+      <div id="pipeOriginal" style="font-size: 1.5rem; font-weight: bold;">8 × 0.1</div>
+    </div>
 
-  <button class="btn btn-next" id="nextBtn" onclick="nextQuestion()" style="display: none;">Next Challenge ➔</button>
+    <div class="arrow">➔</div>
 
-  <div class="score-board">Score: <span id="score">0</span></div>
+    <div class="step-box" id="pipeFractionBox">
+      <div class="step-label">Fraction Form</div>
+      <div id="pipeFractionVal" style="font-size: 1.5rem; font-weight: bold; color: #94a3b8;">?</div>
+    </div>
+
+    <div class="arrow">➔</div>
+
+    <div class="step-box" id="pipeOperationBox">
+      <div class="step-label">Equivalent Operation</div>
+      <div id="pipeOperationVal" style="font-size: 1.5rem; font-weight: bold; color: #94a3b8;">?</div>
+    </div>
+  </div>
+
+  <!-- Interactive Choice Buttons -->
+  <div class="options-grid" id="optionsGrid"></div>
+
+  <!-- Pedagogical Explanation Banner -->
+  <div class="explanation-banner" id="explanationText">
+    Select the correct equivalent form above to begin transforming the problem!
+  </div>
+
+  <button class="btn-next" id="nextBtn" onclick="nextQuestion()" style="display: none;">Next Challenge ➔</button>
+
+  <div class="score-tracker">Score: <span id="scoreVal">0</span></div>
 </div>
 
 <script>
-  const challenges = [
-    { startVal: 45, startCol: [1, 2], digits: ["4", "5"], op: "multiply", answer: "4.5", endCol: [2, 3] },
-    { startVal: 6, startCol: [2], digits: ["6"], op: "divide", answer: "60", endCol: [1, 2], fillZero: [2] },
-    { startVal: 30, startCol: [1, 2], digits: ["3", "0"], op: "divide", answer: "300", endCol: [0, 1], fillZero: [2] },
-    { startVal: 8, startCol: [2], digits: ["8"], op: "multiply", answer: "0.8", endCol: [3], fillZero: [2] },
-    { startVal: 52, startCol: [1, 2], digits: ["5", "2"], op: "multiply", answer: "5.2", endCol: [2, 3] }
+  // Challenges aligned directly with the textbook rule set
+  const questions = [
+    {
+      num: 8,
+      decimalStr: "0.1",
+      op: "multiply",
+      fractionHTML: `8 × <div class="fraction-display"><span>1</span><div class="fraction-line"></div><span>10</span></div>`,
+      fractionPlain: "8 × 1/10",
+      equivalentOp: "8 ÷ 10",
+      ruleText: "0.1 is the same as <sup>1</sup>/<sub>10</sub>. So multiplying by 0.1 has the same effect as <strong>dividing by 10</strong>."
+    },
+    {
+      num: 8,
+      decimalStr: "0.01",
+      op: "multiply",
+      fractionHTML: `8 × <div class="fraction-display"><span>1</span><div class="fraction-line"></div><span>100</span></div>`,
+      fractionPlain: "8 × 1/100",
+      equivalentOp: "8 ÷ 100",
+      ruleText: "0.01 is the same as <sup>1</sup>/<sub>100</sub>. So multiplying by 0.01 has the same effect as <strong>dividing by 100</strong>."
+    },
+    {
+      num: 8,
+      decimalStr: "0.1",
+      op: "divide",
+      fractionHTML: `8 ÷ <div class="fraction-display"><span>1</span><div class="fraction-line"></div><span>10</span></div>`,
+      fractionPlain: "8 ÷ 1/10",
+      equivalentOp: "8 × 10",
+      ruleText: "Dividing by <sup>1</sup>/<sub>10</sub> is the inverse of dividing by 10. So dividing by 0.1 has the same effect as <strong>multiplying by 10</strong>."
+    },
+    {
+      num: 8,
+      decimalStr: "0.01",
+      op: "divide",
+      fractionHTML: `8 ÷ <div class="fraction-display"><span>1</span><div class="fraction-line"></div><span>100</span></div>`,
+      fractionPlain: "8 ÷ 1/100",
+      equivalentOp: "8 × 100",
+      ruleText: "Dividing by <sup>1</sup>/<sub>100</sub> is the inverse of dividing by 100. So dividing by 0.01 has the same effect as <strong>multiplying by 100</strong>."
+    }
   ];
 
   let currentIdx = 0;
+  let currentStep = 1; // 1: Select Fraction, 2: Select Equivalent Operation
   let score = 0;
-  let hasAnswered = false;
 
-  function loadChallenge() {
-    hasAnswered = false;
+  function loadQuestion() {
+    currentStep = 1;
+    const q = questions[currentIdx];
+    const opSymbol = q.op === "multiply" ? "×" : "÷";
+
+    document.getElementById("stepPrompt").textContent = "Step 1: Convert the Decimal into Fraction Form";
+    document.getElementById("problemExpr").textContent = `${q.num} ${opSymbol} ${q.decimalStr}`;
+    document.getElementById("pipeOriginal").textContent = `${q.num} ${opSymbol} ${q.decimalStr}`;
+    
+    // Reset Pipeline Visual
+    document.getElementById("pipeFractionVal").innerHTML = "?";
+    document.getElementById("pipeFractionVal").style.color = "#94a3b8";
+    document.getElementById("pipeFractionBox").className = "step-box";
+
+    document.getElementById("pipeOperationVal").innerHTML = "?";
+    document.getElementById("pipeOperationVal").style.color = "#94a3b8";
+    document.getElementById("pipeOperationBox").className = "step-box";
+
+    document.getElementById("explanationText").style.borderLeftColor = "#cbd5e1";
+    document.getElementById("explanationText").innerHTML = `Convert <strong>${q.decimalStr}</strong> into its fraction equivalent to see what happens to the problem!`;
     document.getElementById("nextBtn").style.display = "none";
-    document.getElementById("feedbackText").className = "feedback";
-    document.getElementById("feedbackText").textContent = "Select SHRINK or STRETCH to shift the digits!";
 
-    // Clear Grid
-    for (let i = 0; i <= 4; i++) {
-      document.getElementById(`col-${i}`).innerHTML = "";
-    }
+    renderStep1Options();
+  }
 
-    const c = challenges[currentIdx];
-    const symbol = c.op === "multiply" ? "×" : "÷";
-    document.getElementById("challengeText").textContent = `${c.startVal} ${symbol} 0.1 = ?`;
+  function renderStep1Options() {
+    const q = questions[currentIdx];
+    const grid = document.getElementById("optionsGrid");
+    grid.innerHTML = "";
 
-    // Populate Initial Digits
-    c.startCol.forEach((colIdx, i) => {
-      const card = document.createElement("div");
-      card.className = "digit-card";
-      card.textContent = c.digits[i];
-      document.getElementById(`col-${colIdx}`).appendChild(card);
+    // Generate options for fraction representation
+    const options = [
+      { html: q.fractionHTML, isCorrect: true },
+      { html: `${q.num} ${q.op === 'multiply' ? '×' : '÷'} <div class="fraction-display"><span>1</span><div class="fraction-line"></div><span>2</span></div>`, isCorrect: false },
+      { html: `${q.num} ${q.op === 'multiply' ? '×' : '÷'} <div class="fraction-display"><span>10</span><div class="fraction-line"></div><span>1</span></div>`, isCorrect: false }
+    ].sort(() => Math.random() - 0.5);
+
+    options.forEach(opt => {
+      const btn = document.createElement("button");
+      btn.className = "btn-option";
+      btn.innerHTML = opt.html;
+      btn.onclick = () => handleStep1Choice(opt.isCorrect, btn);
+      grid.appendChild(btn);
     });
   }
 
-  function applyAction(action) {
-    if (hasAnswered) return;
-
-    const c = challenges[currentIdx];
-    const isCorrect = (action === "shrink" && c.op === "multiply") || (action === "stretch" && c.op === "divide");
-
-    // Clear Board
-    for (let i = 0; i <= 4; i++) {
-      document.getElementById(`col-${i}`).innerHTML = "";
-    }
-
-    // Shift Digits to new locations
-    c.endCol.forEach((colIdx, i) => {
-      const card = document.createElement("div");
-      card.className = "digit-card shifted";
-      card.textContent = c.digits[i];
-      document.getElementById(`col-${colIdx}`).appendChild(card);
-    });
-
-    // Add zero placeholder if needed
-    if (c.fillZero) {
-      c.fillZero.forEach(colIdx => {
-        const card = document.createElement("div");
-        card.className = "digit-card shifted";
-        card.textContent = "0";
-        document.getElementById(`col-${colIdx}`).appendChild(card);
-      });
-    }
-
-    const feedback = document.getElementById("feedbackText");
+  function handleStep1Choice(isCorrect, btnElement) {
+    const q = questions[currentIdx];
     if (isCorrect) {
-      score += 10;
-      document.getElementById("score").textContent = score;
-      feedback.className = "feedback correct";
-      
-      if (c.op === "multiply") {
-        feedback.innerHTML = `Correct! Multiplying by 0.1 is the same as dividing by 10.<br>Digits shift 1 place RIGHT to make <strong>${c.answer}</strong>!`;
-      } else {
-        feedback.innerHTML = `Correct! Dividing by 0.1 is the same as multiplying by 10.<br>Digits shift 1 place LEFT to make <strong>${c.answer}</strong>!`;
-      }
-    } else {
-      feedback.className = "feedback";
-      feedback.style.background = "#fee2e2";
-      feedback.style.color = "#991b1b";
-      feedback.innerHTML = `Not quite! Remember: <strong>× 0.1 = SHRINK (Right)</strong> and <strong>÷ 0.1 = STRETCH (Left)</strong>.`;
-    }
+      btnElement.classList.add("selected-correct");
+      document.getElementById("pipeFractionVal").innerHTML = q.fractionHTML;
+      document.getElementById("pipeFractionVal").style.color = "#0f172a";
+      document.getElementById("pipeFractionBox").className = "step-box active";
 
-    hasAnswered = true;
-    document.getElementById("nextBtn").style.display = "inline-block";
+      document.getElementById("explanationText").style.borderLeftColor = "#16a34a";
+      document.getElementById("explanationText").innerHTML = `<strong>Great Job!</strong> Now, what whole number operation is equivalent to <strong>${q.fractionPlain}</strong>?`;
+
+      setTimeout(() => {
+        currentStep = 2;
+        renderStep2Options();
+      }, 1000);
+    } else {
+      btnElement.classList.add("selected-wrong");
+      document.getElementById("explanationText").style.borderLeftColor = "#dc2626";
+      document.getElementById("explanationText").innerHTML = `<strong>Try again!</strong> Remember that 0.1 = <sup>1</sup>/<sub>10</sub> and 0.01 = <sup>1</sup>/<sub>100</sub>.`;
+    }
+  }
+
+  function renderStep2Options() {
+    const q = questions[currentIdx];
+    document.getElementById("stepPrompt").textContent = "Step 2: Choose the Equivalent Whole-Number Operation";
+
+    const grid = document.getElementById("optionsGrid");
+    grid.innerHTML = "";
+
+    const options = [
+      { text: q.equivalentOp, isCorrect: true },
+      { text: `${q.num} ${q.op === 'multiply' ? '×' : '÷'} 10`, isCorrect: false },
+      { text: `${q.num} ${q.op === 'multiply' ? '÷' : '×'} 2`, isCorrect: false }
+    ].sort(() => Math.random() - 0.5);
+
+    options.forEach(opt => {
+      const btn = document.createElement("button");
+      btn.className = "btn-option";
+      btn.textContent = opt.text;
+      btn.onclick = () => handleStep2Choice(opt.isCorrect, btn);
+      grid.appendChild(btn);
+    });
+  }
+
+  function handleStep2Choice(isCorrect, btnElement) {
+    const q = questions[currentIdx];
+    if (isCorrect) {
+      btnElement.classList.add("selected-correct");
+      document.getElementById("pipeOperationVal").textContent = q.equivalentOp;
+      document.getElementById("pipeOperationVal").style.color = "#16a34a";
+      document.getElementById("pipeOperationBox").className = "step-box active";
+
+      score += 10;
+      document.getElementById("scoreVal").textContent = score;
+
+      document.getElementById("explanationText").style.borderLeftColor = "#16a34a";
+      document.getElementById("explanationText").innerHTML = `<strong>Rule Unlocked:</strong> ${q.ruleText}`;
+
+      document.getElementById("nextBtn").style.display = "inline-block";
+    } else {
+      btnElement.classList.add("selected-wrong");
+      document.getElementById("explanationText").style.borderLeftColor = "#dc2626";
+      document.getElementById("explanationText").innerHTML = `<strong>Not quite!</strong> Think: Does multiplying/dividing by this fraction make the original number larger or smaller?`;
+    }
   }
 
   function nextQuestion() {
-    currentIdx = (currentIdx + 1) % challenges.length;
-    loadChallenge();
+    currentIdx = (currentIdx + 1) % questions.length;
+    loadQuestion();
   }
 
-  window.onload = loadChallenge;
+  window.onload = loadQuestion;
 </script>
 
 </body>
