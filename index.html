@@ -181,6 +181,7 @@
       border-radius: 10px;
       cursor: pointer;
       transition: background 0.2s;
+      display: inline-block;
     }
 
     .btn-next:hover {
@@ -203,7 +204,7 @@
 
   <!-- Problem Header -->
   <div class="challenge-card">
-    <div class="problem-title" id="stepPrompt">Step 1: Convert the Decimal into a Fraction</div>
+    <div class="problem-title" id="stepPrompt">Step 1: Convert the Decimal into Fraction Form</div>
     <div class="problem-expr" id="problemExpr">8 × 0.1</div>
   </div>
 
@@ -237,13 +238,13 @@
     Select the correct equivalent form above to begin transforming the problem!
   </div>
 
-  <button class="btn-next" id="nextBtn" onclick="nextQuestion()" style="display: none;">Next Challenge ➔</button>
+  <!-- Next Challenge Button (Always Visible) -->
+  <button class="btn-next" id="nextBtn" onclick="nextQuestion()">Next Challenge ➔</button>
 
   <div class="score-tracker">Score: <span id="scoreVal">0</span></div>
 </div>
 
 <script>
-  // Challenges aligned directly with the textbook rule set
   const questions = [
     {
       num: 8,
@@ -284,11 +285,14 @@
   ];
 
   let currentIdx = 0;
-  let currentStep = 1; // 1: Select Fraction, 2: Select Equivalent Operation
+  let currentStep = 1;
   let score = 0;
+  let autoAdvanceTimer = null;
 
   function loadQuestion() {
+    if (autoAdvanceTimer) clearTimeout(autoAdvanceTimer);
     currentStep = 1;
+
     const q = questions[currentIdx];
     const opSymbol = q.op === "multiply" ? "×" : "÷";
 
@@ -296,7 +300,7 @@
     document.getElementById("problemExpr").textContent = `${q.num} ${opSymbol} ${q.decimalStr}`;
     document.getElementById("pipeOriginal").textContent = `${q.num} ${opSymbol} ${q.decimalStr}`;
     
-    // Reset Pipeline Visual
+    // Reset Pipeline Visuals
     document.getElementById("pipeFractionVal").innerHTML = "?";
     document.getElementById("pipeFractionVal").style.color = "#94a3b8";
     document.getElementById("pipeFractionBox").className = "step-box";
@@ -307,7 +311,6 @@
 
     document.getElementById("explanationText").style.borderLeftColor = "#cbd5e1";
     document.getElementById("explanationText").innerHTML = `Convert <strong>${q.decimalStr}</strong> into its fraction equivalent to see what happens to the problem!`;
-    document.getElementById("nextBtn").style.display = "none";
 
     renderStep1Options();
   }
@@ -317,7 +320,6 @@
     const grid = document.getElementById("optionsGrid");
     grid.innerHTML = "";
 
-    // Generate options for fraction representation
     const options = [
       { html: q.fractionHTML, isCorrect: true },
       { html: `${q.num} ${q.op === 'multiply' ? '×' : '÷'} <div class="fraction-display"><span>1</span><div class="fraction-line"></div><span>2</span></div>`, isCorrect: false },
@@ -347,7 +349,7 @@
       setTimeout(() => {
         currentStep = 2;
         renderStep2Options();
-      }, 1000);
+      }, 800);
     } else {
       btnElement.classList.add("selected-wrong");
       document.getElementById("explanationText").style.borderLeftColor = "#dc2626";
@@ -391,11 +393,14 @@
       document.getElementById("explanationText").style.borderLeftColor = "#16a34a";
       document.getElementById("explanationText").innerHTML = `<strong>Rule Unlocked:</strong> ${q.ruleText}`;
 
-      document.getElementById("nextBtn").style.display = "inline-block";
+      // Automatically advance after 2.5 seconds if student doesn't click "Next Challenge"
+      autoAdvanceTimer = setTimeout(() => {
+        nextQuestion();
+      }, 2500);
     } else {
       btnElement.classList.add("selected-wrong");
       document.getElementById("explanationText").style.borderLeftColor = "#dc2626";
-      document.getElementById("explanationText").innerHTML = `<strong>Not quite!</strong> Think: Does multiplying/dividing by this fraction make the original number larger or smaller?`;
+      document.getElementById("explanationText").innerHTML = `<strong>Not quite!</strong> Think: Does multiplying or dividing by this fraction make the number larger or smaller?`;
     }
   }
 
