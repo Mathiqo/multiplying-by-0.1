@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Decimal Shrink & Stretch Machine</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: #f1f5f9;
+      color: #0f172a;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .container {
+      max-width: 800px;
+      width: 100%;
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+      text-align: center;
+    }
+
+    h1 {
+      margin-top: 0;
+      color: #1e293b;
+    }
+
+    .subtitle {
+      color: #64748b;
+      margin-bottom: 25px;
+    }
+
+    /* Target Display Box */
+    .challenge-box {
+      background: #eff6ff;
+      border: 2px dashed #2563eb;
+      border-radius: 12px;
+      padding: 15px;
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: #1d4ed8;
+      margin-bottom: 25px;
+    }
+
+    /* Place Value Table */
+    .pv-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 25px;
+    }
+
+    .pv-table th {
+      background: #3b82f6;
+      color: white;
+      padding: 12px;
+      font-size: 1.1rem;
+      border: 1px solid #2563eb;
+    }
+
+    .pv-table td {
+      border: 2px solid #cbd5e1;
+      height: 90px;
+      width: 16.66%;
+      position: relative;
+      background: #f8fafc;
+    }
+
+    .decimal-dot {
+      font-size: 3rem;
+      font-weight: bold;
+      color: #dc2626;
+      line-height: 90px;
+    }
+
+    .digit-slot {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+    }
+
+    .digit-card {
+      width: 50px;
+      height: 60px;
+      background: #facc15;
+      color: #854d0e;
+      font-size: 2rem;
+      font-weight: bold;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      transition: transform 0.4s ease, background 0.3s ease;
+    }
+
+    .digit-card.shifted {
+      transform: scale(1.1);
+      background: #4ade80;
+      color: #14532d;
+    }
+
+    /* Action Buttons */
+    .controls {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      padding: 15px 25px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      color: white;
+    }
+
+    .btn-shrink {
+      background-color: #ef4444;
+    }
+    .btn-shrink:hover { background-color: #dc2626; }
+
+    .btn-stretch {
+      background-color: #16a34a;
+    }
+    .btn-stretch:hover { background-color: #15803d; }
+
+    .btn-next {
+      background-color: #2563eb;
+      margin-top: 10px;
+    }
+    .btn-next:hover { background-color: #1d4ed8; }
+
+    /* Explanation Feedback Box */
+    .feedback {
+      min-height: 60px;
+      font-size: 1.15rem;
+      font-weight: bold;
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 15px;
+    }
+
+    .feedback.correct {
+      background: #dcfce7;
+      color: #15803d;
+    }
+
+    .score-board {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #475569;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>The Shrink & Stretch Machine</h1>
+  <p class="subtitle">Can you shift the digits to solve multiplying and dividing by 0.1?</p>
+
+  <div class="challenge-box" id="challengeText">Loading...</div>
+
+  <!-- Place Value Chart -->
+  <table class="pv-table">
+    <thead>
+      <tr>
+        <th>Hundreds</th>
+        <th>Tens</th>
+        <th>Ones</th>
+        <th>.</th>
+        <th>Tenths</th>
+        <th>Hundredths</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><div class="digit-slot" id="col-0"></div></td>
+        <td><div class="digit-slot" id="col-1"></div></td>
+        <td><div class="digit-slot" id="col-2"></div></td>
+        <td><div class="decimal-dot">•</div></td>
+        <td><div class="digit-slot" id="col-3"></div></td>
+        <td><div class="digit-slot" id="col-4"></div></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button class="btn btn-shrink" onclick="applyAction('shrink')">
+      SHRINK! (Shift Right ➔)
+    </button>
+    <button class="btn btn-stretch" onclick="applyAction('stretch')">
+      STRETCH! (Shift Left ⬅)
+    </button>
+  </div>
+
+  <div class="feedback" id="feedbackText">Select SHRINK or STRETCH to shift the digits!</div>
+
+  <button class="btn btn-next" id="nextBtn" onclick="nextQuestion()" style="display: none;">Next Challenge ➔</button>
+
+  <div class="score-board">Score: <span id="score">0</span></div>
+</div>
+
+<script>
+  const challenges = [
+    { startVal: 45, startCol: [1, 2], digits: ["4", "5"], op: "multiply", answer: "4.5", endCol: [2, 3] },
+    { startVal: 6, startCol: [2], digits: ["6"], op: "divide", answer: "60", endCol: [1, 2], fillZero: [2] },
+    { startVal: 30, startCol: [1, 2], digits: ["3", "0"], op: "divide", answer: "300", endCol: [0, 1], fillZero: [2] },
+    { startVal: 8, startCol: [2], digits: ["8"], op: "multiply", answer: "0.8", endCol: [3], fillZero: [2] },
+    { startVal: 52, startCol: [1, 2], digits: ["5", "2"], op: "multiply", answer: "5.2", endCol: [2, 3] }
+  ];
+
+  let currentIdx = 0;
+  let score = 0;
+  let hasAnswered = false;
+
+  function loadChallenge() {
+    hasAnswered = false;
+    document.getElementById("nextBtn").style.display = "none";
+    document.getElementById("feedbackText").className = "feedback";
+    document.getElementById("feedbackText").textContent = "Select SHRINK or STRETCH to shift the digits!";
+
+    // Clear Grid
+    for (let i = 0; i <= 4; i++) {
+      document.getElementById(`col-${i}`).innerHTML = "";
+    }
+
+    const c = challenges[currentIdx];
+    const symbol = c.op === "multiply" ? "×" : "÷";
+    document.getElementById("challengeText").textContent = `${c.startVal} ${symbol} 0.1 = ?`;
+
+    // Populate Initial Digits
+    c.startCol.forEach((colIdx, i) => {
+      const card = document.createElement("div");
+      card.className = "digit-card";
+      card.textContent = c.digits[i];
+      document.getElementById(`col-${colIdx}`).appendChild(card);
+    });
+  }
+
+  function applyAction(action) {
+    if (hasAnswered) return;
+
+    const c = challenges[currentIdx];
+    const isCorrect = (action === "shrink" && c.op === "multiply") || (action === "stretch" && c.op === "divide");
+
+    // Clear Board
+    for (let i = 0; i <= 4; i++) {
+      document.getElementById(`col-${i}`).innerHTML = "";
+    }
+
+    // Shift Digits to new locations
+    c.endCol.forEach((colIdx, i) => {
+      const card = document.createElement("div");
+      card.className = "digit-card shifted";
+      card.textContent = c.digits[i];
+      document.getElementById(`col-${colIdx}`).appendChild(card);
+    });
+
+    // Add zero placeholder if needed
+    if (c.fillZero) {
+      c.fillZero.forEach(colIdx => {
+        const card = document.createElement("div");
+        card.className = "digit-card shifted";
+        card.textContent = "0";
+        document.getElementById(`col-${colIdx}`).appendChild(card);
+      });
+    }
+
+    const feedback = document.getElementById("feedbackText");
+    if (isCorrect) {
+      score += 10;
+      document.getElementById("score").textContent = score;
+      feedback.className = "feedback correct";
+      
+      if (c.op === "multiply") {
+        feedback.innerHTML = `Correct! Multiplying by 0.1 is the same as dividing by 10.<br>Digits shift 1 place RIGHT to make <strong>${c.answer}</strong>!`;
+      } else {
+        feedback.innerHTML = `Correct! Dividing by 0.1 is the same as multiplying by 10.<br>Digits shift 1 place LEFT to make <strong>${c.answer}</strong>!`;
+      }
+    } else {
+      feedback.className = "feedback";
+      feedback.style.background = "#fee2e2";
+      feedback.style.color = "#991b1b";
+      feedback.innerHTML = `Not quite! Remember: <strong>× 0.1 = SHRINK (Right)</strong> and <strong>÷ 0.1 = STRETCH (Left)</strong>.`;
+    }
+
+    hasAnswered = true;
+    document.getElementById("nextBtn").style.display = "inline-block";
+  }
+
+  function nextQuestion() {
+    currentIdx = (currentIdx + 1) % challenges.length;
+    loadChallenge();
+  }
+
+  window.onload = loadChallenge;
+</script>
+
+</body>
+</html>
